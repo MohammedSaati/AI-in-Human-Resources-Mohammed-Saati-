@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI in Human Resources — Beyond Keyword Matching</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#070A12; --bg-soft:#0C111D; --card:rgba(255,255,255,.025);
+    --card-hi:rgba(255,255,255,.05); --border:rgba(255,255,255,.09);
+    --border-hi:rgba(255,255,255,.18);
+    --text:#EAEDF5; --muted:#8B93A7; --dim:#5C6377;
+    --indigo:#6366F1; --violet:#A855F7; --cyan:#22D3EE; --pink:#F472B6;
+    --grad:linear-gradient(120deg,#818CF8 0%,#A855F7 45%,#22D3EE 100%);
+    --grad-soft:linear-gradient(120deg,rgba(129,140,248,.15),rgba(34,211,238,.12));
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
+    font-size:17px;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  body::before{
+    content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(700px 500px at 80% -5%,rgba(168,85,247,.16),transparent 60%),
+      radial-gradient(700px 500px at 0% 10%,rgba(99,102,241,.14),transparent 55%),
+      radial-gradient(600px 600px at 50% 110%,rgba(34,211,238,.10),transparent 60%);
+  }
+  body::after{
+    content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+    background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+    background-size:54px 54px;
+    -webkit-mask-image:radial-gradient(circle at 50% 30%,#000,transparent 75%);
+            mask-image:radial-gradient(circle at 50% 30%,#000,transparent 75%);
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px;position:relative;z-index:1}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  /* progress + nav */
+  #progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:60;background:var(--grad)}
+  .nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    background:rgba(7,10,18,.6);border-bottom:1px solid var(--border)}
+  .nav-in{max-width:1180px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .logo{font-family:'Space Grotesk';font-weight:700;letter-spacing:.02em;display:flex;align-items:center;gap:9px;font-size:15px}
+  .logo .dot{width:9px;height:9px;border-radius:50%;background:var(--grad);box-shadow:0 0 14px var(--violet)}
+  .nav-links{display:flex;gap:22px;list-style:none;flex-wrap:wrap}
+  .nav-links a{color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;transition:color .2s}
+  .nav-links a:hover{color:var(--text)}
+
+  /* hero */
+  .hero{padding:110px 0 80px;text-align:center;position:relative}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono';font-size:12px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--muted);border:1px solid var(--border);
+    padding:7px 16px;border-radius:100px;background:var(--card);margin-bottom:30px}
+  .kicker .pulse{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 10px var(--cyan);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .hero h1{font-family:'Space Grotesk';font-weight:700;font-size:clamp(40px,7vw,82px);line-height:1.02;
+    letter-spacing:-.03em;margin-bottom:24px}
+  .hero h1 .line2{display:block}
+  .hero p.sub{max-width:660px;margin:0 auto;color:var(--muted);font-size:20px;font-weight:300;line-height:1.6}
+  .hero .meta{margin-top:26px;font-family:'JetBrains Mono';font-size:13px;color:var(--dim);letter-spacing:.04em}
+
+  /* stat strip */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:64px}
+  .stat{border:1px solid var(--border);background:var(--card);border-radius:16px;padding:26px 22px;text-align:left;
+    transition:border-color .3s,transform .3s,background .3s}
+  .stat:hover{border-color:var(--border-hi);transform:translateY(-4px);background:var(--card-hi)}
+  .stat .v{font-family:'Space Grotesk';font-weight:700;font-size:42px;line-height:1;letter-spacing:-.02em}
+  .stat .v .u{font-size:18px;color:var(--muted);margin-left:3px;font-weight:500}
+  .stat .l{margin-top:12px;font-size:13px;color:var(--muted);line-height:1.45}
+
+  /* sections */
+  section{padding:92px 0;position:relative}
+  .eyebrow{font-family:'JetBrains Mono';font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--violet);display:flex;align-items:center;gap:12px;margin-bottom:16px}
+  .eyebrow::before{content:attr(data-n);color:var(--dim);font-weight:700}
+  .eyebrow::after{content:'';flex:0 0 42px;height:1px;background:linear-gradient(90deg,var(--violet),transparent)}
+  h2.title{font-family:'Space Grotesk';font-weight:700;font-size:clamp(28px,4.4vw,46px);line-height:1.1;
+    letter-spacing:-.02em;margin-bottom:18px}
+  .lead{color:var(--muted);font-size:18px;max-width:760px;line-height:1.7;margin-bottom:54px;font-weight:300}
+
+  /* reveal (progressive enhancement) */
+  .js .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  .js .reveal.in{opacity:1;transform:none}
+
+  /* DEMO */
+  .demo{border:1px solid var(--border);border-radius:22px;background:
+    linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));overflow:hidden}
+  .demo-head{padding:22px 26px;border-bottom:1px solid var(--border);display:flex;align-items:center;
+    justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .demo-head h3{font-family:'Space Grotesk';font-size:19px;font-weight:600}
+  .demo-head .tag{font-family:'JetBrains Mono';font-size:11px;color:var(--dim);border:1px solid var(--border);
+    padding:4px 10px;border-radius:6px}
+  .switch{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .switch button{background:transparent;border:0;color:var(--muted);font-family:'Inter';font-size:13.5px;
+    font-weight:600;padding:9px 16px;cursor:pointer;transition:all .25s}
+  .switch button.on{color:#fff;background:var(--grad)}
+  .demo-body{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  .demo-col{padding:24px 26px}
+  .demo-col+.demo-col{border-left:1px solid var(--border)}
+  .demo-col h4{font-family:'JetBrains Mono';font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--dim);margin-bottom:16px}
+  .req{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font-size:13px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);
+    font-family:'JetBrains Mono';transition:all .3s}
+  .chip.hit{border-color:rgba(34,211,238,.5);background:rgba(34,211,238,.1);color:#9EEAF6}
+  .chip.miss{border-color:rgba(244,114,182,.4);background:rgba(244,114,182,.07);color:#F9A8D4;opacity:.85}
+  .res-line{font-size:14.5px;color:var(--muted);padding:9px 0;border-bottom:1px dashed var(--border);line-height:1.45}
+  .res-line:last-child{border-bottom:0}
+  .res-line b{color:var(--text);font-weight:500}
+  .res-line .why{display:block;font-family:'JetBrains Mono';font-size:11.5px;margin-top:4px}
+  .res-line .why.ok{color:var(--cyan)} .res-line .why.no{color:var(--pink)}
+  .scorebar{margin:22px 26px 0;padding-bottom:24px}
+  .scorebar .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+  .scorebar .row .k{font-family:'JetBrains Mono';font-size:12px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+  .scorebar .row .pct{font-family:'Space Grotesk';font-weight:700;font-size:34px}
+  .track{height:10px;border-radius:100px;background:rgba(255,255,255,.06);overflow:hidden}
+  .fill{height:100%;width:25%;border-radius:100px;background:var(--grad);transition:width .9s cubic-bezier(.2,.7,.2,1)}
+  .verdict{margin-top:14px;font-size:14px;color:var(--muted);line-height:1.6}
+  .verdict b{color:var(--text)}
+
+  /* model cards */
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .mcard{position:relative;border:1px solid var(--border);border-radius:18px;background:var(--card);
+    padding:28px 26px;overflow:hidden;transition:transform .35s,border-color .35s}
+  .mcard::before{content:'';position:absolute;inset:0;background:var(--grad-soft);opacity:0;transition:opacity .35s}
+  .mcard:hover{transform:translateY(-6px);border-color:var(--border-hi)}
+  .mcard:hover::before{opacity:1}
+  .mcard>*{position:relative;z-index:1}
+  .mcard .idx{font-family:'JetBrains Mono';font-size:12px;color:var(--violet)}
+  .mcard h3{font-family:'Space Grotesk';font-size:22px;font-weight:600;margin:10px 0 4px}
+  .mcard .sub{font-size:13px;color:var(--muted);margin-bottom:14px}
+  .mcard .badge{display:inline-block;font-family:'JetBrains Mono';font-size:10.5px;letter-spacing:.1em;
+    text-transform:uppercase;padding:4px 9px;border-radius:6px;border:1px solid var(--border);color:var(--cyan);margin-bottom:16px}
+  .mcard .badge.gen{color:var(--pink)}
+  .mcard p{font-size:14.5px;color:var(--muted);line-height:1.65}
+  .mcard .eg{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:13px;color:var(--dim);line-height:1.6}
+  .mcard .eg b{color:var(--text)}
+
+  /* companies */
+  .co{display:grid;grid-template-columns:54px 200px 1fr 150px;gap:26px;align-items:center;
+    padding:26px 4px;border-bottom:1px solid var(--border);transition:padding .3s}
+  .co:hover{padding-left:14px}
+  .co:last-child{border-bottom:0}
+  .co .rk{font-family:'Space Grotesk';font-weight:700;font-size:34px;color:var(--dim)}
+  .co .nm{font-family:'Space Grotesk';font-size:22px;font-weight:600}
+  .co .og{font-family:'JetBrains Mono';font-size:11.5px;color:var(--muted);margin-top:4px;letter-spacing:.04em}
+  .co .ds{font-size:14.5px;color:var(--muted);line-height:1.6}
+  .co .ds b{color:var(--text);font-weight:500}
+  .co .st{text-align:right}
+  .co .st .n{font-family:'Space Grotesk';font-weight:700;font-size:26px}
+  .co .st .ll{font-size:11.5px;color:var(--muted);margin-top:4px}
+
+  /* timeline */
+  .tl-switch{display:flex;gap:0;border:1px solid var(--border);border-radius:10px;width:fit-content;margin-bottom:44px;overflow:hidden}
+  .tl-switch button{background:transparent;border:0;color:var(--muted);font-family:'Inter';font-weight:600;
+    font-size:13.5px;padding:9px 20px;cursor:pointer;transition:all .25s}
+  .tl-switch button.on{color:#fff;background:var(--grad)}
+  .tl{position:relative;padding-left:30px}
+  .tl::before{content:'';position:absolute;left:7px;top:6px;bottom:6px;width:2px;
+    background:linear-gradient(180deg,var(--indigo),var(--violet),var(--cyan))}
+  .ev{position:relative;padding:0 0 30px 26px}
+  .ev::before{content:'';position:absolute;left:-30px;top:5px;width:16px;height:16px;border-radius:50%;
+    background:var(--bg);border:2px solid var(--violet);box-shadow:0 0 0 4px rgba(168,85,247,.12)}
+  .ev[data-track="saudi"]::before{border-color:var(--cyan);box-shadow:0 0 0 4px rgba(34,211,238,.12)}
+  .ev .yr{font-family:'JetBrains Mono';font-weight:700;font-size:13px;color:var(--violet);letter-spacing:.05em}
+  .ev[data-track="saudi"] .yr{color:var(--cyan)}
+  .ev .flag{font-family:'JetBrains Mono';font-size:10px;text-transform:uppercase;letter-spacing:.12em;
+    border:1px solid var(--border);padding:2px 8px;border-radius:5px;color:var(--muted);margin-left:8px}
+  .ev h4{font-family:'Space Grotesk';font-size:18px;font-weight:600;margin:6px 0 5px}
+  .ev p{font-size:14px;color:var(--muted);line-height:1.55;max-width:560px}
+  .ev .m{font-family:'JetBrains Mono';font-size:11.5px;color:var(--dim);margin-top:6px}
+
+  /* challenges */
+  .ch{border-top:2px solid;border-image:var(--grad) 1;padding-top:20px}
+  .ch .cn{font-family:'JetBrains Mono';font-size:12px;color:var(--violet);margin-bottom:10px}
+  .ch h4{font-family:'Space Grotesk';font-size:20px;font-weight:600;margin-bottom:10px}
+  .ch p{font-size:14.5px;color:var(--muted);line-height:1.65}
+
+  /* future */
+  .future{border:1px solid var(--border);border-radius:24px;padding:54px 44px;
+    background:linear-gradient(160deg,rgba(99,102,241,.10),rgba(34,211,238,.05))}
+  .fgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:34px;margin-top:40px}
+  .fitem{border-left:2px solid var(--violet);padding-left:18px}
+  .fitem h4{font-family:'Space Grotesk';font-size:20px;font-weight:600;margin-bottom:9px}
+  .fitem p{font-size:14.5px;color:var(--muted);line-height:1.65}
+
+  footer{border-top:1px solid var(--border);padding:48px 0 36px;margin-top:40px;position:relative;z-index:1}
+  .foot{display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px}
+  .foot h5{font-family:'JetBrains Mono';font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--violet);margin-bottom:14px}
+  .foot p{font-size:14px;color:var(--muted);line-height:1.65;max-width:360px}
+  .foot ul{list-style:none}.foot li{font-size:13.5px;color:var(--muted);margin-bottom:7px}
+  .foot a{color:var(--muted);text-decoration:none;border-bottom:1px solid transparent;transition:.2s}
+  .foot a:hover{color:var(--cyan);border-color:var(--cyan)}
+  .foot-b{margin-top:36px;padding-top:22px;border-top:1px solid var(--border);display:flex;justify-content:space-between;
+    flex-wrap:wrap;gap:12px;font-family:'JetBrains Mono';font-size:12px;color:var(--dim)}
+
+  @media(max-width:860px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .demo-body{grid-template-columns:1fr}
+    .demo-col+.demo-col{border-left:0;border-top:1px solid var(--border)}
+    .grid3{grid-template-columns:1fr}
+    .co{grid-template-columns:40px 1fr;gap:14px}
+    .co .ds,.co .st{grid-column:1/-1}.co .st{text-align:left}
+    .fgrid,.foot{grid-template-columns:1fr}
+  }
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<script>document.documentElement.className='js';</script>
+<div id="progress"></div>
+
+<nav class="nav">
+  <div class="nav-in">
+    <div class="logo"><span class="dot"></span>AI&nbsp;<span style="color:var(--dim)">×</span>&nbsp;HR</div>
+    <ul class="nav-links">
+      <li><a href="#demo">Demo</a></li>
+      <li><a href="#models">Models</a></li>
+      <li><a href="#companies">Companies</a></li>
+      <li><a href="#timeline">Timeline</a></li>
+      <li><a href="#challenges">Challenges</a></li>
+      <li><a href="#future">Future</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap">
+    <span class="kicker"><span class="pulse"></span>Advanced Deep Learning · Research Case Study</span>
+    <h1>Artificial Intelligence<br><span class="line2">in <span class="grad-text">Human Resources</span></span></h1>
+    <p class="sub">How résumé screening is moving from matching keywords to understanding skills in their real context — with a local lens on Saudi Vision 2030.</p>
+    <p class="meta">Supervised by Dr. Ahmed Al-Hindi · Mohammed Abdullah Saati</p>
+
+    <div class="stats">
+      <div class="stat reveal"><div class="v"><span class="count" data-to="250" data-suf="K">250K</span></div><div class="l">Applications Unilever processed to hire ~800 people</div></div>
+      <div class="stat reveal"><div class="v"><span class="count" data-to="90">90</span><span class="u">%</span></div><div class="l">Reduction in time-to-hire after automation</div></div>
+      <div class="stat reveal"><div class="v"><span class="count" data-to="1.5" data-dec="1">1.5</span><span class="u">B</span></div><div class="l">Career profiles Eightfold trained its models on</div></div>
+      <div class="stat reveal"><div class="v"><span class="count" data-to="3.7" data-dec="1">3.7</span><span class="u">B SAR</span></div><div class="l">HADAF fund investment in employment support</div></div>
+    </div>
+  </div>
+</header>
+
+<!-- DEMO -->
+<section id="demo">
+  <div class="wrap">
+    <div class="eyebrow" data-n="01">The core idea</div>
+    <h2 class="title reveal">Keyword match vs.<br>semantic understanding</h2>
+    <p class="lead reveal">The same candidate, the same job. A keyword system sees four misses; a semantic model understands what the words actually mean. Toggle the engine and watch the score change. <span class="mono" style="color:var(--dim)">(Conceptual demo — illustrative, not a live model.)</span></p>
+
+    <div class="demo reveal">
+      <div class="demo-head">
+        <div><h3>Senior ML Engineer — match preview</h3></div>
+        <div class="switch">
+          <button id="bKey" class="on" onclick="setMode('key')">Keyword Matching</button>
+          <button id="bSem" onclick="setMode('sem')">Semantic Matching (AI)</button>
+        </div>
+      </div>
+      <div class="demo-body">
+        <div class="demo-col">
+          <h4>Job requirements</h4>
+          <div class="req" id="reqList"></div>
+        </div>
+        <div class="demo-col">
+          <h4>What the résumé actually says</h4>
+          <div id="resList"></div>
+        </div>
+      </div>
+      <div class="scorebar">
+        <div class="row"><span class="k">Match score</span><span class="pct grad-text" id="pct">25%</span></div>
+        <div class="track"><div class="fill" id="fill"></div></div>
+        <p class="verdict" id="verdict"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MODELS -->
+<section id="models">
+  <div class="wrap">
+    <div class="eyebrow" data-n="02">Deep learning models</div>
+    <h2 class="title reveal">Three model families<br>behind smart screening</h2>
+    <p class="lead reveal">From semantic understanding, to contextual reasoning, to generation — the stages that took résumé screening beyond literal keywords.</p>
+    <div class="grid3">
+      <div class="mcard reveal">
+        <div class="idx">// 01</div>
+        <h3>Transformers &amp; BERT</h3>
+        <div class="sub">Semantic embeddings</div>
+        <span class="badge">Predictive AI</span>
+        <p>Represent a résumé and a job description as semantic vectors and measure similarity in meaning, not in words — the heart of moving past literal matching.</p>
+        <div class="eg"><b>Applied:</b> conSultantBERT (Lavi et al., 2021) trained on 270K résumé–job pairs, beating TF-IDF and matching across languages.</div>
+      </div>
+      <div class="mcard reveal">
+        <div class="idx">// 02</div>
+        <h3>LLMs &amp; RAG</h3>
+        <div class="sub">Large language models</div>
+        <span class="badge gen">Generative AI</span>
+        <p>Reason about transferable skills, generate readable justifications for a ranking, and ground decisions in company data via retrieval-augmented generation.</p>
+        <div class="eg"><b>Applied:</b> "AI Hiring with LLMs" (arXiv 2025) — a multi-agent, explainable screening framework that separates extraction, matching and justification.</div>
+      </div>
+      <div class="mcard reveal">
+        <div class="idx">// 03</div>
+        <h3>GAN &amp; Diffusion</h3>
+        <div class="sub">Generative data models</div>
+        <span class="badge gen">Generative AI</span>
+        <p>Generate synthetic résumés to fight data scarcity and demographic imbalance. A double-edged sword: biased inputs reproduce bias.</p>
+        <div class="eg"><b>Applied:</b> research combining GANs with LLMs to improve job recommendation (Du et al., 2024, AAAI).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPANIES -->
+<section id="companies">
+  <div class="wrap">
+    <div class="eyebrow" data-n="03">Who builds it</div>
+    <h2 class="title reveal">Three real-world<br>case studies</h2>
+    <p class="lead reveal">A global talent-intelligence platform, a documented enterprise deployment, and a Saudi national initiative that matches this research question exactly.</p>
+
+    <div class="co reveal">
+      <div class="rk">01</div>
+      <div><div class="nm">Eightfold AI</div><div class="og">USA · 2016</div></div>
+      <div class="ds">A "talent intelligence" platform matching candidates on <b>skills and potential</b>, not keywords. Models trained on 1.5B+ career profiles, with an agentic AI interviewer for first-pass screening.</div>
+      <div class="st"><div class="n grad-text">1.5B</div><div class="ll">profiles for matching</div></div>
+    </div>
+    <div class="co reveal">
+      <div class="rk">02</div>
+      <div><div class="nm">Unilever</div><div class="og">Global · HireVue + Pymetrics</div></div>
+      <div class="ds">An end-to-end digital pathway (assessment games → AI-scored video). Cut time-to-hire ~<b>90%</b>, saved <b>50,000</b> hours/year. Video analysis later drew criticism the industry stepped back from.</div>
+      <div class="st"><div class="n grad-text">+16%</div><div class="ll">increase in hire diversity</div></div>
+    </div>
+    <div class="co reveal">
+      <div class="rk">03</div>
+      <div><div class="nm">Jadarat</div><div class="og">Saudi Arabia · 2024</div></div>
+      <div class="ds">The national hiring platform from the Ministry of HR. Uses <b>competency-based matching</b> and verifies skills against trusted sources (Education, GOSI) — going beyond résumé keywords, the core of this study.</div>
+      <div class="st"><div class="n grad-text">3.7B</div><div class="ll">SAR HADAF investment</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section id="timeline">
+  <div class="wrap">
+    <div class="eyebrow" data-n="04">How we got here</div>
+    <h2 class="title reveal">From 2014 to 2030</h2>
+    <p class="lead reveal">Global progress runs in parallel with Saudi Arabia's labor-market build-out. Filter the two tracks below.</p>
+
+    <div class="tl-switch">
+      <button class="on" data-f="all" onclick="filterTL('all',this)">All</button>
+      <button data-f="global" onclick="filterTL('global',this)">Global</button>
+      <button data-f="saudi" onclick="filterTL('saudi',this)">Saudi</button>
+    </div>
+
+    <div class="tl" id="tl">
+      <div class="ev reveal" data-track="global"><div class="yr">2014<span class="flag">Global</span></div><h4>Amazon's biased tool</h4><p>Amazon starts an automated screener, then discovers it favors men and scraps it — the founding lesson in algorithmic fairness.</p><div class="m">Lesson: data bias</div></div>
+      <div class="ev reveal" data-track="saudi"><div class="yr">2016<span class="flag">Saudi</span></div><h4>Vision 2030 launches</h4><p>The Kingdom's vision, with human-capability development and Saudization as national priorities, sets the stage for digitizing the labor market.</p></div>
+      <div class="ev reveal" data-track="global"><div class="yr">2018<span class="flag">Global</span></div><h4>BERT &amp; semantic matching</h4><p>The BERT paper transforms language understanding; research on matching résumés to jobs semantically — not by keywords — follows.</p><div class="m">Model: BERT, S-BERT</div></div>
+      <div class="ev reveal" data-track="global"><div class="yr">2023<span class="flag">Global</span></div><h4>GenAI + first regulation</h4><p>LLMs enter conversational screening, while NYC Local Law 144 begins requiring independent bias audits.</p><div class="m">Models: LLMs, RAG</div></div>
+      <div class="ev reveal" data-track="saudi"><div class="yr">2024<span class="flag">Saudi</span></div><h4>Jadarat platform launches</h4><p>The Ministry of HR launches the unified national platform for competency-based, semantic hiring.</p><div class="m">Competency matching</div></div>
+      <div class="ev reveal" data-track="global"><div class="yr">2024<span class="flag">Global</span></div><h4>EU AI Act</h4><p>Europe classifies AI hiring systems as "high-risk," with fines up to 7% of global revenue.</p><div class="m">High-risk classification</div></div>
+      <div class="ev reveal" data-track="global"><div class="yr">2025<span class="flag">Global</span></div><h4>Agentic recruiters</h4><p>Autonomous agents (e.g., Eightfold's Agentic Interviewer) begin running screening and first-pass interviews semi-independently.</p><div class="m">Autonomous agents</div></div>
+      <div class="ev reveal" data-track="saudi"><div class="yr">2030<span class="flag">Saudi · Target</span></div><h4>Vision 2030 goal</h4><p>Skills-based localization and lower unemployment, with Arabic NLP advancing and SDAIA &amp; HUMAIN support — an opening for Saudi CS specialists.</p><div class="m">Skills-based hiring</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CHALLENGES -->
+<section id="challenges">
+  <div class="wrap">
+    <div class="eyebrow" data-n="05">The hard part</div>
+    <h2 class="title reveal">What efficiency<br>numbers hide</h2>
+    <p class="lead reveal">Screening people automatically is sensitive. High accuracy can conceal deep bias.</p>
+    <div class="grid3">
+      <div class="ch reveal"><div class="cn">// 01</div><h4>Learned bias</h4><p>Amazon's tool favored men because it trained on historically male data, downgrading résumés mentioning "women's." A model doesn't invent bias — it reflects its data, more efficiently.</p></div>
+      <div class="ch reveal"><div class="cn">// 02</div><h4>Explainability &amp; gaming</h4><p>Why was a candidate rejected? Explaining the decision is hard. Meanwhile applicants stuff keywords or inject hidden instructions (prompt injection) to fool the system.</p></div>
+      <div class="ch reveal"><div class="cn">// 03</div><h4>Regulation &amp; Arabic data</h4><p>Rising laws (LL 144, EU AI Act) demand bias audits and transparency. Locally, scarce Arabic résumé data and NLP models are both a challenge and a research opportunity.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FUTURE -->
+<section id="future">
+  <div class="wrap">
+    <div class="future reveal">
+      <div class="eyebrow" data-n="06" style="color:var(--cyan)">Next 5 years</div>
+      <h2 class="title">Four shifts ahead</h2>
+      <p class="lead" style="margin-bottom:0">Most important locally: Saudi Arabia turning into a regional lab for skills-based, compliant intelligent hiring.</p>
+      <div class="fgrid">
+        <div class="fitem"><h4>Agentic recruiters</h4><p>Agents screen, interview and reach out semi-autonomously. The human shifts from "screener" to "supervisor who audits and overrides."</p></div>
+        <div class="fitem"><h4>Skills-based hiring</h4><p>Less reliance on formal credentials, more on proven skills — backed by taxonomies like ESCO and models like CareerBERT. This embodies the research question.</p></div>
+        <div class="fitem"><h4>Explainable &amp; compliant AI</h4><p>As laws tighten, explainability and bias auditing become a competitive advantage, not a luxury.</p></div>
+        <div class="fitem"><h4>Saudi Arabia as a regional lab</h4><p>With Jadarat expanding, Arabic NLP maturing, and SDAIA &amp; HUMAIN support, the Kingdom can lead locally compliant, skills-based hiring.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <h5>About</h5>
+        <p>A research case study for the <span class="mono">Advanced Deep Learning</span> course, designed with generative AI and published on GitHub Pages. All statistics and companies cited are sourced from real academic and industry references.</p>
+      </div>
+      <div>
+        <h5>Sources</h5>
+        <ul>
+          <li class="mono">arXiv 1810.04805</li>
+          <li class="mono">arXiv 2109.06501</li>
+          <li class="mono">arXiv 2504.02870</li>
+          <li>MIT Tech Review</li>
+          <li>Deloitte · Reuters</li>
+        </ul>
+      </div>
+      <div>
+        <h5>Cited</h5>
+        <ul>
+          <li><a href="https://eightfold.ai">eightfold.ai</a></li>
+          <li><a href="https://www.hirevue.com">hirevue.com</a></li>
+          <li><a href="https://jadarat.sa">jadarat.sa</a></li>
+          <li><a href="https://sdaia.gov.sa">sdaia.gov.sa</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-b">
+      <span>Mohammed Abdullah Saati · Advanced Deep Learning</span>
+      <span>Built with Claude · Hosted on GitHub Pages</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // scroll progress
+  const prog=document.getElementById('progress');
+  addEventListener('scroll',()=>{const h=document.documentElement;const sc=h.scrollTop/(h.scrollHeight-h.clientHeight);prog.style.width=(sc*100)+'%';});
+
+  // reveal on scroll (with safety fallbacks so content is never stuck hidden)
+  const revealAll=()=>document.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
+  if('IntersectionObserver' in window){
+    const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.08});
+    document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+    // safety net: reveal anything still hidden in-viewport shortly after load
+    addEventListener('load',()=>setTimeout(()=>{
+      document.querySelectorAll('.reveal:not(.in)').forEach(el=>{if(el.getBoundingClientRect().top<innerHeight)el.classList.add('in');});
+    },400));
+  } else { revealAll(); }
+
+  // count-up
+  function animateCount(el){
+    const to=parseFloat(el.dataset.to);const dec=parseInt(el.dataset.dec||'0');const suf=el.dataset.suf||'';
+    let start=null;const dur=1300;
+    function step(t){if(!start)start=t;const p=Math.min((t-start)/dur,1);const e=1-Math.pow(1-p,3);
+      const val=to*e;el.textContent=val.toFixed(dec)+suf;if(p<1)requestAnimationFrame(step);else el.textContent=to.toFixed(dec)+suf;}
+    requestAnimationFrame(step);
+  }
+  if('IntersectionObserver' in window){
+    const cio=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){animateCount(e.target);cio.unobserve(e.target);}});},{threshold:.5});
+    document.querySelectorAll('.count').forEach(el=>cio.observe(el));
+  } else {
+    document.querySelectorAll('.count').forEach(el=>{el.textContent=parseFloat(el.dataset.to).toFixed(parseInt(el.dataset.dec||'0'))+(el.dataset.suf||'');});
+  }
+
+  // ---- keyword vs semantic demo ----
+  const reqs=['Python','Machine Learning','Team Leadership','Cloud / AWS'];
+  const resume=[
+    {text:'Built deep-learning models in <b>PyTorch</b> and scripted data pipelines',                 keyHit:false, semReq:'Python',           why:'"PyTorch / scripting" implies Python'},
+    {text:'Trained and deployed <b>neural networks</b> for production',                               keyHit:false, semReq:'Machine Learning',  why:'"neural networks" ≈ machine learning'},
+    {text:'<b>Led a squad of 5 engineers</b> through two product launches',                            keyHit:false, semReq:'Team Leadership',   why:'"led a squad" = team leadership'},
+    {text:'Deployed microservices on <b>Amazon Web Services</b> (EC2, S3)',                            keyHit:false, semReq:'Cloud / AWS',       why:'"Amazon Web Services" = AWS / cloud'}
+  ];
+  let mode='key';
+  function render(){
+    const reqList=document.getElementById('reqList');
+    const resList=document.getElementById('resList');
+    const matched=new Set(mode==='sem'?reqs:[]); // keyword mode literally matches none of these phrasings
+    reqList.innerHTML=reqs.map(r=>`<span class="chip ${matched.has(r)?'hit':'miss'}">${r}</span>`).join('');
+    resList.innerHTML=resume.map(r=>{
+      const ok=mode==='sem';
+      return `<div class="res-line">${r.text}<span class="why ${ok?'ok':'no'}">${ok?'✓ '+r.why:'✗ no exact keyword found'}</span></div>`;
+    }).join('');
+    const score=mode==='sem'?96:25;
+    document.getElementById('fill').style.width=score+'%';
+    document.getElementById('pct').textContent=score+'%';
+    document.getElementById('verdict').innerHTML = mode==='sem'
+      ? '<b>Semantic match: strong.</b> The model understands that PyTorch implies Python, that a "squad" is a team, and that AWS is cloud — so a great candidate is surfaced, not filtered out.'
+      : '<b>Keyword match: weak.</b> None of the exact required words appear verbatim, so a qualified candidate is wrongly rejected — the failure this research aims to fix.';
+    document.getElementById('bKey').classList.toggle('on',mode==='key');
+    document.getElementById('bSem').classList.toggle('on',mode==='sem');
+  }
+  function setMode(m){mode=m;render();}
+  render();
+
+  // timeline filter
+  function filterTL(f,btn){
+    document.querySelectorAll('.tl-switch button').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    document.querySelectorAll('#tl .ev').forEach(ev=>{ev.style.display=(f==='all'||ev.dataset.track===f)?'':'none';});
+  }
+
+  // smooth nav offset
+  document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',e=>{
+    e.preventDefault();const t=document.querySelector(a.getAttribute('href'));
+    if(t)scrollTo({top:t.offsetTop-70,behavior:'smooth'});
+  }));
+</script>
+</body>
+</html>
